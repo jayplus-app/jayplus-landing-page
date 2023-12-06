@@ -1,0 +1,46 @@
+name: CI/CD Pipeline - Dev
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and run Docker Compose
+        run: make up-detached
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: jayplus-main-artifact
+          path: ./
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: jayplus-main-artifact
+          path: /home/runner/work/jayplus/jayplus-main-artifact
+
+      - name: Setup SSH
+        run: |
+          sudo apt-get install -y openssh-client
+          mkdir -p ~/.ssh
+          ssh-keyscan 178.128.228.63 >> ~/.ssh/known_hosts
+          echo "${{ secrets.GH_ACTIONS_MAIN_SSH_KEY }}" > gh-actions-main-ssh-key
+          chmod 600 gh-actions-main-ssh-key
+
+      - name: Copy Artifacts and Deploy
+        run: |
+          scp -i gh-actions-dev-ssh-key -r /home/runner/work/jayplus/jayplus-dev-artifact/* gh-actions@178.128.228.63:~/
+          ssh -i gh-actions-dev-ssh-key gh-actions@178.128.228.63 "
+          cd ~/ && make up-detached"

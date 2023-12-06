@@ -41,6 +41,6 @@ jobs:
 
       - name: Copy Artifacts and Deploy
         run: |
-          scp -i gh-actions-dev-ssh-key -r /home/runner/work/jayplus/jayplus-dev-artifact/* gh-actions@178.128.228.63:~/
-          ssh -i gh-actions-dev-ssh-key gh-actions@178.128.228.63 "
+          scp -i gh-actions-main-ssh-key -r /home/runner/work/jayplus/jayplus-dev-artifact/* gh-actions@178.128.228.63:~/
+          ssh -i gh-actions-main-ssh-key gh-actions@178.128.228.63 "
           cd ~/ && make up-detached"
